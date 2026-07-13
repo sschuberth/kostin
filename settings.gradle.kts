@@ -18,7 +18,20 @@ plugins {
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
-rootProject.name = "kotlin-lib-cli-template"
+rootProject.name = "kostin"
 
 include(":cli")
 include(":lib")
+
+dependencyResolutionManagement {
+    @Suppress("UnstableApiUsage")
+    repositories {
+        mavenCentral()
+    }
+
+    versionCatalogs {
+        create("ktorLibs") {
+            from("io.ktor:ktor-version-catalog:3.5.1")
+        }
+    }
+}
