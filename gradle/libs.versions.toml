@@ -2,14 +2,20 @@
 detektPlugin = "2.0.0-alpha.5"
 graalVmNativeImagePlugin = "1.1.4"
 kotlinPlugin = "2.3.21"
+openApiGeneratorPlugin = "7.23.0"
 sortDependenciesPlugin = "0.19.0"
 tapmocPlugin = "0.4.2"
 
 clikt = "5.1.0"
 kotest = "6.2.2"
+kotlinxDatetime = "0.8.0"
+kotlinxSerialization = "1.11.0"
+logback = "1.5.38"
 
 [plugins]
 graalVmNativeImage = { id = "org.graalvm.buildtools.native", version.ref = "graalVmNativeImagePlugin" }
+kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinPlugin" }
+openApiGenerator = { id = "org.openapi.generator", version.ref = "openApiGeneratorPlugin" }
 
 [libraries]
 # These are Maven coordinates for Gradle plugins, which are required for use in precompiled plugin scripts.
@@ -22,3 +28,7 @@ plugin-tapmoc = { module = "com.gradleup.tapmoc:tapmoc-gradle-plugin", version.r
 clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
+kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinxSerialization" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+logbackClassic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }

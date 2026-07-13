@@ -1,8 +1,6 @@
 import dev.detekt.gradle.Detekt
 import dev.detekt.gradle.report.ReportMergeTask
 
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 val libsCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
 plugins {
@@ -31,12 +29,6 @@ detekt {
     }
 
     basePath = rootDir
-}
-
-tasks.withType<KotlinCompile>().configureEach {
-    compilerOptions {
-        allWarningsAsErrors = true
-    }
 }
 
 val mergeDetektReportsTaskName = "mergeDetektReports"

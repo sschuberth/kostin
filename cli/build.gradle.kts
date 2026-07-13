@@ -19,13 +19,16 @@ plugins {
 val javaLanguageVersion = project.property("javaLanguageVersion") as String
 
 application {
-    applicationName = "template"
-    mainClass = "dev.schuberth.template.cli.MainKt"
+    applicationName = "kostin"
+    mainClass = "dev.schuberth.kostin.cli.MainKt"
 }
 
 dependencies {
+    implementation(ktorLibs.client.okhttp)
     implementation(libs.clikt)
     implementation(projects.lib)
+
+    runtimeOnly(libs.logbackClassic)
 }
 
 tasks.withType<JavaExec>().configureEach {
