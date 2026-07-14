@@ -11,6 +11,8 @@ kotest = "6.2.2"
 kotlinxDatetime = "0.8.0"
 kotlinxSerialization = "1.11.0"
 logback = "1.5.38"
+signumIndispensable = "3.24.0"
+signumSupreme = "0.15.0"
 
 [plugins]
 graalVmNativeImage = { id = "org.graalvm.buildtools.native", version.ref = "graalVmNativeImagePlugin" }
@@ -32,3 +34,5 @@ kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.
 kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinxSerialization" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 logbackClassic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+signum-indispensable = { module = "at.asitplus.signum:indispensable", version.ref = "signumIndispensable" }
+signum-supreme = { module = "at.asitplus.signum:supreme", version.ref = "signumSupreme" }
