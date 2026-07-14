@@ -1,6 +1,7 @@
 package dev.schuberth.kostin.cli
 
 import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.ProgramResult
 import com.github.ajalt.clikt.core.main
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
@@ -8,9 +9,11 @@ import com.github.ajalt.mordant.rendering.Theme
 
 import dev.schuberth.kostin.client.apis.InfoApi
 import dev.schuberth.kostin.client.infrastructure.ApiClient
+import dev.schuberth.kostin.client.models.Version
 
 import io.ktor.client.engine.okhttp.OkHttp
 
+import java.io.IOException
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
 
@@ -29,8 +32,10 @@ fun main(args: Array<String>) {
 object Main : CliktCommand() {
     private val url by option().required()
 
-    override fun run() {
-        val engine = OkHttp.create {
+    private val apiUrl by lazy { "${url.removeSuffix("/")}${ApiClient.BASE_URL}" }
+
+    private val engine by lazy {
+        OkHttp.create {
             config {
                 val trustAllCerts = object : X509TrustManager {
                     override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) = Unit
@@ -46,20 +51,28 @@ object Main : CliktCommand() {
                 hostnameVerifier { _, _ -> true }
             }
         }
+    }
 
-        val api = InfoApi(
-            baseUrl = "${url.removeSuffix("/")}${ApiClient.BASE_URL}",
-            httpClientEngine = engine
-        )
+    override fun run() {
+        getVersion().onSuccess { version ->
+            echo(Theme.Default.info("Communicating via '${version.name}' version ${version.apiVersion}."))
+            echo(Theme.Default.info("Host '${version.hostname}' has software version ${version.swVersion}."))
+        }.onFailure {
+            echo(Theme.Default.danger("Failed to get version information."))
+            throw ProgramResult(1)
+        }
+    }
 
-        runBlocking {
-            val result = api.getInfo()
+    private fun getVersion(): Result<Version> {
+        val api = InfoApi(baseUrl = apiUrl, httpClientEngine = engine)
 
-            if (result.success) {
-                val version = result.body()
-                echo(Theme.Default.success(version.toString()))
-            } else {
-                echo(Theme.Default.warning(result.response.status.toString()))
+        return runCatching {
+            runBlocking {
+                val result = api.getInfo()
+
+                if (!result.success) throw IOException("Failed to get version: ${result.response.status}")
+
+                result.body()
             }
         }
     }
