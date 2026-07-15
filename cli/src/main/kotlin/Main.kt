@@ -28,6 +28,7 @@ import dev.schuberth.kostin.client.models.AuthCreateSessionRequest
 import dev.schuberth.kostin.client.models.TokenResponse
 import dev.schuberth.kostin.client.models.Version
 
+import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.header
@@ -197,14 +198,17 @@ object Main : CliktCommand() {
     }
 
     context(session: TokenResponse)
+    private fun authConfig(): HttpClientConfig<*>.() -> Unit = {
+        defaultRequest {
+            // Calling `AuthApi.setBearerToken()` throws "No Bearer authentication configured" but there seems to be
+            // no way to set it, so set it manually.
+            header(HttpHeaders.Authorization, "Bearer ${session.token}")
+        }
+    }
+
+    context(session: TokenResponse)
     private fun logout() {
-        val api = AuthApi(baseUrl = apiUrl, httpClientEngine = engine, httpClientConfig = {
-            it.defaultRequest {
-                // Calling `AuthApi.setBearerToken()` throws "No Bearer authentication configured" but there seems to be
-                // no way to set it, so set it manually.
-                header(HttpHeaders.Authorization, "Bearer ${session.token}")
-            }
-        })
+        val api = AuthApi(baseUrl = apiUrl, httpClientEngine = engine, httpClientConfig = authConfig())
 
         runBlocking {
             val result = api.postLogout()
