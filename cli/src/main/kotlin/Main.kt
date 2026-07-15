@@ -29,6 +29,9 @@ import dev.schuberth.kostin.client.models.TokenResponse
 import dev.schuberth.kostin.client.models.Version
 
 import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.request.header
+import io.ktor.http.HttpHeaders
 
 import java.io.IOException
 import java.security.SecureRandom
@@ -88,8 +91,9 @@ object Main : CliktCommand() {
         }
 
         password?.also {
-            login(it, serviceCode)
-            logout()
+            with(login(it, serviceCode)) {
+                logout()
+            }
         }
     }
 
@@ -192,8 +196,15 @@ object Main : CliktCommand() {
         }
     }
 
+    context(session: TokenResponse)
     private fun logout() {
-        val api = AuthApi(baseUrl = apiUrl, httpClientEngine = engine)
+        val api = AuthApi(baseUrl = apiUrl, httpClientEngine = engine, httpClientConfig = {
+            it.defaultRequest {
+                // Calling `AuthApi.setBearerToken()` throws "No Bearer authentication configured" but there seems to be
+                // no way to set it, so set it manually.
+                header(HttpHeaders.Authorization, "Bearer ${session.token}")
+            }
+        })
 
         runBlocking {
             val result = api.postLogout()

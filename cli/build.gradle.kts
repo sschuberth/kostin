@@ -5,6 +5,8 @@ import org.graalvm.buildtools.gradle.tasks.NativeRunTask
 
 import org.gradle.kotlin.dsl.named
 
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     // Apply core plugins.
     application
@@ -31,6 +33,12 @@ dependencies {
     implementation(projects.lib)
 
     runtimeOnly(libs.logbackClassic)
+}
+
+tasks.withType<KotlinCompile> {
+    compilerOptions {
+        freeCompilerArgs.add("-Xcontext-parameters")
+    }
 }
 
 tasks.withType<JavaExec>().configureEach {
