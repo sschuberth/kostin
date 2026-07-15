@@ -956,7 +956,7 @@
   "produces" : [ "application/json" ],
   "consumes" : [ "application/json" ],
   "securityDefinitions" : {
-    "apikey" : {
+    "Bearer Auth" : {
       "type" : "apiKey",
       "in" : "header",
       "name" : "Authorization"
