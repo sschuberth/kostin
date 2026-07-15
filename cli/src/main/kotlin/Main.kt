@@ -30,7 +30,7 @@ object Main : CliktCommand() {
 
         password?.also {
             client.authenticate(it, serviceCode) {
-                reboot()
+                downloadLogData()
             }
         }
     }
