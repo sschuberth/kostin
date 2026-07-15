@@ -85,7 +85,10 @@ object Main : CliktCommand() {
             throw ProgramResult(1)
         }
 
-        password?.also { login(it, serviceCode) }
+        password?.also {
+            login(it, serviceCode)
+            logout()
+        }
     }
 
     private fun getVersion(): Result<Version> {
@@ -187,6 +190,17 @@ object Main : CliktCommand() {
                 }
 
                 resultSession.body()
+            }
+        }
+    }
+
+    private fun logout(): Result<Unit> {
+        val api = AuthApi(baseUrl = apiUrl, httpClientEngine = engine)
+
+        return runCatching {
+            runBlocking {
+                val result = api.postLogout()
+                if (!result.success) throw IOException("Failed to logout: ${result.response.status}")
             }
         }
     }
