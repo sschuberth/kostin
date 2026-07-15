@@ -3,9 +3,14 @@ package dev.schuberth.kostin.cli
 import at.asitplus.signum.indispensable.Digest as SignumDigest
 import at.asitplus.signum.indispensable.HMAC
 import at.asitplus.signum.indispensable.kdf.PBKDF2
+import at.asitplus.signum.indispensable.symmetric.SymmetricEncryptionAlgorithm
+import at.asitplus.signum.indispensable.symmetric.authTag
+import at.asitplus.signum.indispensable.symmetric.keyFrom
+import at.asitplus.signum.indispensable.symmetric.nonce
 import at.asitplus.signum.supreme.hash.digest
 import at.asitplus.signum.supreme.kdf.deriveKey
 import at.asitplus.signum.supreme.mac.mac
+import at.asitplus.signum.supreme.symmetric.encrypt
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.ProgramResult
@@ -19,6 +24,8 @@ import dev.schuberth.kostin.client.apis.InfoApi
 import dev.schuberth.kostin.client.infrastructure.ApiClient
 import dev.schuberth.kostin.client.models.AuthClientFinal
 import dev.schuberth.kostin.client.models.AuthClientFirst
+import dev.schuberth.kostin.client.models.AuthCreateSessionRequest
+import dev.schuberth.kostin.client.models.TokenResponse
 import dev.schuberth.kostin.client.models.Version
 
 import io.ktor.client.engine.okhttp.OkHttp
@@ -44,7 +51,9 @@ fun main(args: Array<String>) {
 
 object Main : CliktCommand() {
     private val url by option().required()
+
     private val password by option()
+    private val serviceCode by option()
 
     private val apiUrl by lazy { "${url.removeSuffix("/")}${ApiClient.BASE_URL}" }
 
@@ -76,7 +85,7 @@ object Main : CliktCommand() {
             throw ProgramResult(1)
         }
 
-        password?.also { authenticate(password = it) }
+        password?.also { login(it, serviceCode) }
     }
 
     private fun getVersion(): Result<Version> {
@@ -93,8 +102,14 @@ object Main : CliktCommand() {
         }
     }
 
-    private fun authenticate(username: String = "user", password: String): Result<String> {
+    @Suppress("EnumEntryName")
+    private enum class User { user, master }
+
+    @Suppress("LongMethod", "ThrowsCount")
+    private fun login(password: String, serviceCode: String?): Result<TokenResponse> {
         val api = AuthApi(baseUrl = apiUrl, httpClientEngine = engine)
+
+        val user = if (serviceCode != null) User.master else User.user
 
         return runCatching {
             runBlocking {
@@ -102,17 +117,17 @@ object Main : CliktCommand() {
                 val nonce = Base64.encode(Random.nextBytes(12))
 
                 // Installers need to use "master" as the username.
-                val resultStart = api.postAuthStart(AuthClientFirst(username, nonce))
+                val resultStart = api.postAuthStart(AuthClientFirst(user.name, nonce))
 
                 if (!resultStart.success) {
                     throw IOException("Failed to start authentication: ${resultStart.response.status}")
                 }
 
-                val auth = resultStart.body()
+                val authStart = resultStart.body()
 
-                val kdf = PBKDF2.HMAC_SHA256(auth.rounds)
+                val kdf = PBKDF2.HMAC_SHA256(authStart.rounds)
                 val saltedPassword = kdf.deriveKey(
-                    Base64.decode(auth.salt),
+                    Base64.decode(authStart.salt),
                     password.encodeToByteArray(),
                     kdf.pbkdf2.prf.digest.outputLength
                 ).getOrThrow()
@@ -121,25 +136,57 @@ object Main : CliktCommand() {
 
                 val storedKey = SignumDigest.SHA256.digest(clientKey)
                 val authMessage = listOf(
-                    "n=$username",
+                    "n=${user.name}",
                     "r=$nonce",
-                    "r=${auth.nonce}",
-                    "s=${auth.salt}",
-                    "i=${auth.rounds}",
+                    "r=${authStart.nonce}",
+                    "s=${authStart.salt}",
+                    "i=${authStart.rounds}",
                     "c=biws",
-                    "r=${auth.nonce}"
-                ).joinToString(",")
+                    "r=${authStart.nonce}"
+                ).joinToString(",").encodeToByteArray()
 
-                val clientSignature = HMAC.SHA256.mac(storedKey, authMessage.encodeToByteArray()).getOrThrow()
+                val clientSignature = HMAC.SHA256.mac(storedKey, authMessage).getOrThrow()
                 val proof = clientKey.zip(clientSignature) { a, b -> a xor b }.toByteArray()
 
-                val resultFinish = api.postAuthFinish(AuthClientFinal(auth.transactionId, Base64.encode(proof)))
+                val resultFinish = api.postAuthFinish(AuthClientFinal(authStart.transactionId, Base64.encode(proof)))
 
                 if (!resultFinish.success) {
                     throw IOException("Failed to finish authentication: ${resultFinish.response.status}")
                 }
 
-                resultFinish.body().token
+                val authFinal = resultFinish.body()
+
+                val serverKey = HMAC.SHA256.mac(saltedPassword, "Server Key".encodeToByteArray()).getOrThrow()
+                val serverSignature = HMAC.SHA256.mac(serverKey, authMessage).getOrThrow()
+
+                check(serverSignature.contentEquals(Base64.decode(authFinal.signature))) {
+                    "Server signature verification failed."
+                }
+
+                val msg = "Session Key".encodeToByteArray() + authMessage + clientKey
+                val protocolKey = HMAC.SHA256.mac(storedKey, msg).getOrThrow()
+
+                val token = when (user) {
+                    User.user -> authFinal.token
+                    User.master -> "${authFinal.token}:$serviceCode"
+                }
+
+                val key = SymmetricEncryptionAlgorithm.AES_256.GCM.keyFrom(protocolKey).getOrThrow()
+                val box = key.encrypt(token.encodeToByteArray()).getOrThrow()
+
+                val request = AuthCreateSessionRequest(
+                    authStart.transactionId,
+                    Base64.encode(box.nonce),
+                    Base64.encode(box.authTag),
+                    Base64.encode(box.encryptedData)
+                )
+                val resultSession = api.postAuthCreateSession(request)
+
+                if (!resultSession.success) {
+                    throw IOException("Failed to create session: ${resultSession.response.status}")
+                }
+
+                resultSession.body()
             }
         }
     }
