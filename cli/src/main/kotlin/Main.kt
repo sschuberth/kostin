@@ -21,6 +21,7 @@ import com.github.ajalt.mordant.rendering.Theme
 
 import dev.schuberth.kostin.client.apis.AuthApi
 import dev.schuberth.kostin.client.apis.InfoApi
+import dev.schuberth.kostin.client.apis.SystemApi
 import dev.schuberth.kostin.client.infrastructure.ApiClient
 import dev.schuberth.kostin.client.models.AuthClientFinal
 import dev.schuberth.kostin.client.models.AuthClientFirst
@@ -93,6 +94,7 @@ object Main : CliktCommand() {
 
         password?.also {
             with(login(it, serviceCode)) {
+                reboot()
                 logout()
             }
         }
@@ -213,6 +215,16 @@ object Main : CliktCommand() {
         runBlocking {
             val result = api.postLogout()
             if (!result.success) throw IOException("Failed to logout: ${result.response.status}")
+        }
+    }
+
+    context(session: TokenResponse)
+    private fun reboot() {
+        val api = SystemApi(baseUrl = apiUrl, httpClientEngine = engine, httpClientConfig = authConfig())
+
+        runBlocking {
+            val result = api.postReboot()
+            if (!result.success) throw IOException("Failed to reboot: ${result.response.status}")
         }
     }
 }
