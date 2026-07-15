@@ -2,7 +2,9 @@ package dev.schuberth.kostin.cli
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.ProgramResult
+import com.github.ajalt.clikt.core.UsageError
 import com.github.ajalt.clikt.core.main
+import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.mordant.rendering.Theme
@@ -14,6 +16,8 @@ object Main : CliktCommand() {
 
     private val password by option()
     private val serviceCode by option()
+
+    private val command by argument()
 
     override fun run() {
         val client = KostalInverterClient(url)
@@ -28,11 +32,22 @@ object Main : CliktCommand() {
             throw ProgramResult(1)
         }
 
-        password?.also {
+        val result = password?.let {
             client.authenticate(it, serviceCode) {
-                downloadLogData()
+                when (command) {
+                    "log" -> downloadLogData()
+                    "reboot" -> reboot()
+                    else -> throw UsageError(command)
+                }
+            }
+        } ?: with(client) {
+            when (command) {
+                "version" -> getVersion()
+                else -> throw UsageError(command)
             }
         }
+
+        echo(result)
     }
 }
 

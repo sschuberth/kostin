@@ -86,13 +86,12 @@ class KostalInverterClient(baseUrl: String) {
         }
     }
 
-    fun authenticate(
+    fun <T> authenticate(
         password: String,
         serviceCode: String?,
-        block: context(TokenResponse) KostalInverterClient.() -> Unit
-    ) = with(login(password, serviceCode)) {
-        block()
-        logout()
+        block: context(TokenResponse) KostalInverterClient.() -> T
+    ): T = with(login(password, serviceCode)) {
+        block().also { logout() }
     }
 
     @Suppress("LongMethod", "ThrowsCount")
