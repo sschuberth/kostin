@@ -14,16 +14,20 @@ import at.asitplus.signum.supreme.symmetric.encrypt
 
 import dev.schuberth.kostin.client.apis.AuthApi
 import dev.schuberth.kostin.client.apis.InfoApi
+import dev.schuberth.kostin.client.apis.LogdataApi
 import dev.schuberth.kostin.client.apis.SystemApi
 import dev.schuberth.kostin.client.infrastructure.ApiClient
 import dev.schuberth.kostin.client.models.AuthClientFinal
 import dev.schuberth.kostin.client.models.AuthClientFirst
 import dev.schuberth.kostin.client.models.AuthCreateSessionRequest
+import dev.schuberth.kostin.client.models.DownloadRequest
 import dev.schuberth.kostin.client.models.TokenResponse
 import dev.schuberth.kostin.client.models.Version
 
 import io.ktor.client.HttpClientConfig
+import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders
@@ -40,6 +44,10 @@ import kotlin.io.encoding.Base64
 import kotlin.random.Random
 
 import kotlinx.coroutines.runBlocking
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
 
 /**
  * A client for the REST-based API V2 for PIKO IQ and PLENTICORE plus inverters.
@@ -178,6 +186,11 @@ class KostalInverterClient(baseUrl: String) {
             // no way to set it, so set it manually.
             header(HttpHeaders.Authorization, "Bearer ${session.token}")
         }
+
+        install(HttpTimeout) {
+            @Suppress("MagicNumber")
+            socketTimeoutMillis = 30_000
+        }
     }
 
     context(session: TokenResponse)
@@ -187,6 +200,31 @@ class KostalInverterClient(baseUrl: String) {
         runBlocking {
             val result = api.postLogout()
             if (!result.success) throw IOException("Failed to logout: ${result.response.status}")
+        }
+    }
+
+    context(session: TokenResponse)
+    fun downloadLogData(begin: LocalDate? = null, end: LocalDate? = null): String {
+        val api = LogdataApi(baseUrl = apiUrl, httpClientEngine = engine, httpClientConfig = authConfig())
+
+        return runBlocking {
+            val request = when {
+                begin == null && end == null -> {
+                    val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+                    DownloadRequest(today, today)
+                }
+
+                begin == null && end != null -> DownloadRequest(end, end)
+
+                begin != null && end == null -> DownloadRequest(begin, begin)
+
+                else -> DownloadRequest(begin, end)
+            }
+
+            val result = api.postLogdataDownload(request)
+            if (!result.success) throw IOException("Failed to download log data: ${result.response.status}")
+
+            result.response.body<String>()
         }
     }
 
