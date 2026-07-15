@@ -15,3 +15,7 @@ ktlint:
 naming:
   InvalidPackageDeclaration:
     active: false
+
+style:
+  ThrowsCount:
+    max: 5
