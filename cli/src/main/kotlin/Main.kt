@@ -28,7 +28,7 @@ object Main : CliktCommand() {
             echo(Theme.Default.info("Communicating via '${version.name}' version ${version.apiVersion}."))
             echo(Theme.Default.info("Host '${version.hostname}' has software version ${version.swVersion}."))
         }.onFailure {
-            echo(Theme.Default.danger("Failed to get version information."))
+            echo(Theme.Default.danger("Failed to get version information: $it"))
             throw ProgramResult(1)
         }
 
