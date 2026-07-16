@@ -1,22 +1,32 @@
 plugins {
     // Apply precompiled script plugins.
-    id("kotlin-jvm-conventions")
+    id("kotlin-multiplatform-conventions")
 
     // Apply third-party plugins.
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.openApiGenerator)
 }
 
-dependencies {
-    api(ktorLibs.client.core)
-    api(ktorLibs.http)
-    api(ktorLibs.utils)
-    api(libs.kotlinx.datetime)
-    api(libs.kotlinx.serialization.core)
-    api(libs.kotlinx.serialization.json)
+kotlin {
+    sourceSets {
+        commonMain {
+            kotlin.srcDir(
+                tasks.openApiGenerate.map { layout.buildDirectory.dir("generated/openapi/src/commonMain/kotlin") }
+            )
 
-    implementation(ktorLibs.client.contentNegotiation)
-    implementation(ktorLibs.serialization.kotlinx.json)
+            dependencies {
+                api(ktorLibs.client.core)
+                api(ktorLibs.http)
+                api(ktorLibs.utils)
+                api(libs.kotlinx.datetime)
+                api(libs.kotlinx.serialization.core)
+                api(libs.kotlinx.serialization.json)
+
+                implementation(ktorLibs.client.contentNegotiation)
+                implementation(ktorLibs.serialization.kotlinx.json)
+            }
+        }
+    }
 }
 
 openApiGenerate {
@@ -47,22 +57,4 @@ openApiGenerate {
             "supportingFiles" to ""
         )
     )
-}
-
-sourceSets {
-    main {
-        kotlin {
-            srcDir(layout.buildDirectory.dir("generated/openapi/src/commonMain/kotlin"))
-        }
-    }
-}
-
-tasks.compileKotlin {
-    dependsOn(tasks.openApiGenerate)
-}
-
-afterEvaluate {
-    tasks.named("explodeCodeSourceMain").configure {
-        mustRunAfter(tasks.openApiGenerate)
-    }
 }
