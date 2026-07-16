@@ -3,7 +3,9 @@ package dev.schuberth.kostin.cli
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.ProgramResult
 import com.github.ajalt.clikt.core.UsageError
+import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.core.main
+import com.github.ajalt.clikt.output.MordantHelpFormatter
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
@@ -18,6 +20,12 @@ object Main : CliktCommand() {
     private val serviceCode by option()
 
     private val command by argument()
+
+    init {
+        context {
+            helpFormatter = { MordantHelpFormatter(context = it, requiredOptionMarker = "*", showDefaultValues = true) }
+        }
+    }
 
     override fun run() {
         val client = KostalInverterClient(url)
