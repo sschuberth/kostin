@@ -1,6 +1,7 @@
+import kotlin.enums.enumEntries
+
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
-import kotlin.enums.enumEntries
 
 plugins {
     // Apply precompiled script plugins.
