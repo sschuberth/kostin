@@ -37,13 +37,13 @@ object Main : CliktCommand() {
                 when (command) {
                     "log" -> downloadLogData()
                     "reboot" -> reboot()
-                    else -> throw UsageError(command)
+                    else -> throw UsageError("Invalid authenticated command argument '$command'.")
                 }
             }
         } ?: with(client) {
             when (command) {
                 "version" -> getVersion()
-                else -> throw UsageError(command)
+                else -> throw UsageError("Invalid unauthenticated command argument '$command'.")
             }
         }
 
