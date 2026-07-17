@@ -28,8 +28,8 @@ jobs:
           fetch-depth: 0
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@3f131e8634966bd73d06cc69884922b02e6faf92 # v6.2.0
-      - name: Run unit tests
-        run: ./gradlew test
+      - name: Run all tests
+        run: ./gradlew allTests
   funTest:
     needs: build
     runs-on: ubuntu-26.04
