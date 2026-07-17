@@ -11,6 +11,8 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.mordant.rendering.Theme
 
+import dev.schuberth.kostin.client.KostalInverterClient
+
 import kotlin.system.exitProcess
 
 object Main : CliktCommand() {

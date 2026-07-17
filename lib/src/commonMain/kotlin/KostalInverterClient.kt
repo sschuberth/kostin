@@ -1,4 +1,4 @@
-package dev.schuberth.kostin.cli
+package dev.schuberth.kostin.client
 
 import at.asitplus.signum.indispensable.Digest as SignumDigest
 import at.asitplus.signum.indispensable.HMAC
@@ -26,18 +26,12 @@ import dev.schuberth.kostin.client.models.Version
 
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.call.body
-import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.engine.cio.CIOEngineConfig
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders
-
-import java.io.IOException
-import java.security.SecureRandom
-import java.security.cert.X509Certificate
-
-import javax.net.ssl.SSLContext
-import javax.net.ssl.X509TrustManager
 
 import kotlin.experimental.xor
 import kotlin.io.encoding.Base64
@@ -48,31 +42,14 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.io.IOException
 
 /**
  * A client for the REST-based API V2 for PIKO IQ and PLENTICORE plus inverters.
  */
 class KostalInverterClient(baseUrl: String) {
     private val apiUrl = "${baseUrl.removeSuffix("/")}${ApiClient.BASE_URL}"
-
-    private val engine by lazy {
-        OkHttp.create {
-            config {
-                val trustAllCerts = object : X509TrustManager {
-                    override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) = Unit
-                    override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) = Unit
-                    override fun getAcceptedIssuers() = emptyArray<X509Certificate>()
-                }
-
-                val sslContext = SSLContext.getInstance("SSL").apply {
-                    init(null, arrayOf(trustAllCerts), SecureRandom())
-                }
-
-                sslSocketFactory(sslContext.socketFactory, trustAllCerts)
-                hostnameVerifier { _, _ -> true }
-            }
-        }
-    }
+    private val engine by lazy { CIO.create { trustUnknownCertificates() } }
 
     fun getVersion(): Version {
         val api = InfoApi(baseUrl = apiUrl, httpClientEngine = engine)
@@ -237,6 +214,8 @@ class KostalInverterClient(baseUrl: String) {
         }
     }
 }
+
+internal expect fun CIOEngineConfig.trustUnknownCertificates()
 
 @Suppress("EnumEntryName")
 private enum class User { user, master }
