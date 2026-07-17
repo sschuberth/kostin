@@ -18,10 +18,10 @@ interface CryptoHelper {
         "r=${auth.nonce}"
     ).joinToString(",").encodeToByteArray()
 
-    fun getSaltedPassword(auth: AuthServerFirst, password: String): ByteArray
-    fun getProof(authMessage: ByteArray, saltedPassword: ByteArray): Proof
-    fun checkServerSignature(auth: AuthServerFinal, saltedPassword: ByteArray, authMessage: ByteArray): Boolean
-    fun encryptSessionToken(token: String, proof: Proof): SealedBox
+    suspend fun getSaltedPassword(auth: AuthServerFirst, password: String): ByteArray
+    suspend fun getProof(authMessage: ByteArray, saltedPassword: ByteArray): Proof
+    suspend fun checkServerSignature(auth: AuthServerFinal, saltedPassword: ByteArray, authMessage: ByteArray): Boolean
+    suspend fun encryptSessionToken(token: String, proof: Proof): SealedBox
 }
 
 @Suppress("EnumEntryName")

@@ -18,23 +18,19 @@ import dev.schuberth.kostin.client.models.AuthServerFirst
 import kotlin.experimental.xor
 import kotlin.io.encoding.Base64
 
-import kotlinx.coroutines.runBlocking
-
 actual fun CryptoHelper.Companion.get(): CryptoHelper = CryptoHelperSignum
 
 object CryptoHelperSignum : CryptoHelper {
-    override fun getSaltedPassword(auth: AuthServerFirst, password: String): ByteArray {
+    override suspend fun getSaltedPassword(auth: AuthServerFirst, password: String): ByteArray {
         val kdf = PBKDF2.HMAC_SHA256(auth.rounds)
-        return runBlocking {
-            kdf.deriveKey(
-                Base64.decode(auth.salt),
-                password.encodeToByteArray(),
-                kdf.pbkdf2.prf.digest.outputLength
-            ).getOrThrow()
-        }
+        return kdf.deriveKey(
+            Base64.decode(auth.salt),
+            password.encodeToByteArray(),
+            kdf.pbkdf2.prf.digest.outputLength
+        ).getOrThrow()
     }
 
-    override fun getProof(authMessage: ByteArray, saltedPassword: ByteArray): Proof {
+    override suspend fun getProof(authMessage: ByteArray, saltedPassword: ByteArray): Proof {
         val clientKey = HMAC.SHA256.mac(saltedPassword, "Client Key".encodeToByteArray()).getOrThrow()
         val storedKey = SignumDigest.SHA256.digest(clientKey)
         val clientSignature = HMAC.SHA256.mac(storedKey, authMessage).getOrThrow()
@@ -44,7 +40,7 @@ object CryptoHelperSignum : CryptoHelper {
         return Proof(authMessage, clientKey, storedKey, proof)
     }
 
-    override fun checkServerSignature(
+    override suspend fun checkServerSignature(
         auth: AuthServerFinal,
         saltedPassword: ByteArray,
         authMessage: ByteArray
@@ -54,11 +50,11 @@ object CryptoHelperSignum : CryptoHelper {
         return serverSignature.contentEquals(Base64.decode(auth.signature))
     }
 
-    override fun encryptSessionToken(token: String, proof: Proof): SealedBox {
+    override suspend fun encryptSessionToken(token: String, proof: Proof): SealedBox {
         val msg = "Session Key".encodeToByteArray() + proof.authMessage + proof.clientKey
         val protocolKey = HMAC.SHA256.mac(proof.storedKey, msg).getOrThrow()
         val key = SymmetricEncryptionAlgorithm.AES_256.GCM.keyFrom(protocolKey).getOrThrow()
-        val box = runBlocking { key.encrypt(token.encodeToByteArray()).getOrThrow() }
+        val box = key.encrypt(token.encodeToByteArray()).getOrThrow()
         return SealedBox(box.nonce, box.authTag, box.encryptedData)
     }
 }
