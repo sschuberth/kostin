@@ -76,7 +76,8 @@ class KostalInverterClient(baseUrl: String) {
 
             val authStart = resultStart.body()
             val saltedPassword = CryptoHelperSignum.getSaltedPassword(authStart, password)
-            val proof = CryptoHelperSignum.getProof(user, nonce, authStart, saltedPassword)
+            val authMessage = CryptoHelperSignum.getAuthMessage(user, nonce, authStart)
+            val proof = CryptoHelperSignum.getProof(authMessage, saltedPassword)
             val resultFinish = api.postAuthFinish(AuthClientFinal(authStart.transactionId, Base64.encode(proof.proof)))
 
             if (!resultFinish.success) {

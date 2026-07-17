@@ -32,17 +32,7 @@ object CryptoHelperSignum : CryptoHelper {
         }
     }
 
-    override fun getProof(user: User, nonce: String, auth: AuthServerFirst, saltedPassword: ByteArray): Proof {
-        val authMessage = listOf(
-            "n=${user.name}",
-            "r=$nonce",
-            "r=${auth.nonce}",
-            "s=${auth.salt}",
-            "i=${auth.rounds}",
-            "c=biws",
-            "r=${auth.nonce}"
-        ).joinToString(",").encodeToByteArray()
-
+    override fun getProof(authMessage: ByteArray, saltedPassword: ByteArray): Proof {
         val clientKey = HMAC.SHA256.mac(saltedPassword, "Client Key".encodeToByteArray()).getOrThrow()
         val storedKey = SignumDigest.SHA256.digest(clientKey)
         val clientSignature = HMAC.SHA256.mac(storedKey, authMessage).getOrThrow()
