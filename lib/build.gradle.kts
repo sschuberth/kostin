@@ -32,7 +32,7 @@ kotlin {
                 implementation(ktorLibs.client.contentNegotiation)
                 implementation(ktorLibs.serialization.kotlinx.json)
                 implementation(libs.cryptoKotlin.core)
-                runtimeOnly(libs.cryptoKotlin.provider.optimal)
+                implementation(libs.cryptoKotlin.provider.optimal)
             }
         }
 
