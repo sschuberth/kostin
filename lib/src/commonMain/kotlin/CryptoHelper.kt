@@ -4,8 +4,18 @@ import dev.schuberth.kostin.client.models.AuthServerFinal
 import dev.schuberth.kostin.client.models.AuthServerFirst
 
 interface CryptoHelper {
+    fun getAuthMessage(user: User, nonce: String, auth: AuthServerFirst): ByteArray = listOf(
+        "n=${user.name}",
+        "r=$nonce",
+        "r=${auth.nonce}",
+        "s=${auth.salt}",
+        "i=${auth.rounds}",
+        "c=biws",
+        "r=${auth.nonce}"
+    ).joinToString(",").encodeToByteArray()
+
     fun getSaltedPassword(auth: AuthServerFirst, password: String): ByteArray
-    fun getProof(user: User, nonce: String, auth: AuthServerFirst, saltedPassword: ByteArray): Proof
+    fun getProof(authMessage: ByteArray, saltedPassword: ByteArray): Proof
     fun checkServerSignature(auth: AuthServerFinal, saltedPassword: ByteArray, authMessage: ByteArray): Boolean
     fun encryptSessionToken(token: String, proof: Proof): SealedBox
 }
