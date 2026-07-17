@@ -5,6 +5,7 @@ plugins {
     // Apply third-party plugins.
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.openApiGenerator)
+    alias(libs.plugins.testBalloon)
 }
 
 kotlin {
@@ -29,6 +30,13 @@ kotlin {
                 implementation(ktorLibs.client.cio)
                 implementation(ktorLibs.client.contentNegotiation)
                 implementation(ktorLibs.serialization.kotlinx.json)
+            }
+        }
+
+        commonTest {
+            dependencies {
+                implementation(libs.testBalloon.core)
+                implementation(libs.testBalloon.assertions.kotest)
             }
         }
 

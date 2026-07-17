@@ -13,11 +13,13 @@ kotlinxSerialization = "1.11.0"
 logback = "1.5.38"
 signumIndispensable = "3.24.0"
 signumSupreme = "0.15.0"
+testBalloon = "1.0.1-K2.3.20"
 
 [plugins]
 graalVmNativeImage = { id = "org.graalvm.buildtools.native", version.ref = "graalVmNativeImagePlugin" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinPlugin" }
 openApiGenerator = { id = "org.openapi.generator", version.ref = "openApiGeneratorPlugin" }
+testBalloon = { id = "de.infix.testBalloon", version.ref = "testBalloon" }
 
 [libraries]
 # These are Maven coordinates for Gradle plugins, which are required for use in precompiled plugin scripts.
@@ -36,3 +38,5 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 logbackClassic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 signum-indispensable = { module = "at.asitplus.signum:indispensable", version.ref = "signumIndispensable" }
 signum-supreme = { module = "at.asitplus.signum:supreme", version.ref = "signumSupreme" }
+testBalloon-core = { module = "de.infix.testBalloon:testBalloon-framework-core", version.ref = "testBalloon" }
+testBalloon-assertions-kotest = { module = "de.infix.testBalloon:testBalloon-integration-kotest-assertions", version.ref = "testBalloon" }
