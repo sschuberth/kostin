@@ -8,6 +8,10 @@ plugins {
 }
 
 kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xcontext-parameters")
+    }
+
     sourceSets {
         commonMain {
             kotlin.srcDir(
@@ -22,8 +26,11 @@ kotlin {
                 api(libs.kotlinx.serialization.core)
                 api(libs.kotlinx.serialization.json)
 
+                implementation(ktorLibs.client.cio)
                 implementation(ktorLibs.client.contentNegotiation)
                 implementation(ktorLibs.serialization.kotlinx.json)
+                implementation(libs.signum.indispensable)
+                implementation(libs.signum.supreme)
             }
         }
     }

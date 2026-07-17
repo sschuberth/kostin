@@ -26,10 +26,7 @@ application {
 }
 
 dependencies {
-    implementation(ktorLibs.client.okhttp)
     implementation(libs.clikt)
-    implementation(libs.signum.indispensable)
-    implementation(libs.signum.supreme)
     implementation(projects.lib)
 
     runtimeOnly(libs.logbackClassic)
