@@ -20,6 +20,8 @@ import kotlin.io.encoding.Base64
 
 import kotlinx.coroutines.runBlocking
 
+actual fun CryptoHelper.Companion.get(): CryptoHelper = CryptoHelperSignum
+
 object CryptoHelperSignum : CryptoHelper {
     override fun getSaltedPassword(auth: AuthServerFirst, password: String): ByteArray {
         val kdf = PBKDF2.HMAC_SHA256(auth.rounds)

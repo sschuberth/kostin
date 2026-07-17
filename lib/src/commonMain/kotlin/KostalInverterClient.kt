@@ -60,8 +60,8 @@ class KostalInverterClient(baseUrl: String) {
 
     private fun login(password: String, serviceCode: String?): TokenResponse {
         val api = AuthApi(baseUrl = apiUrl, httpClientEngine = engine)
-
         val user = if (serviceCode != null) User.master else User.user
+        val crypto = CryptoHelper.get()
 
         return runBlocking {
             // 12 bytes provide enough entropy and result in 16 chars Base64-encoded without any padding.
@@ -75,9 +75,9 @@ class KostalInverterClient(baseUrl: String) {
             }
 
             val authStart = resultStart.body()
-            val saltedPassword = CryptoHelperSignum.getSaltedPassword(authStart, password)
-            val authMessage = CryptoHelperSignum.getAuthMessage(user, nonce, authStart)
-            val proof = CryptoHelperSignum.getProof(authMessage, saltedPassword)
+            val saltedPassword = crypto.getSaltedPassword(authStart, password)
+            val authMessage = crypto.getAuthMessage(user, nonce, authStart)
+            val proof = crypto.getProof(authMessage, saltedPassword)
             val resultFinish = api.postAuthFinish(AuthClientFinal(authStart.transactionId, Base64.encode(proof.proof)))
 
             if (!resultFinish.success) {
@@ -86,7 +86,7 @@ class KostalInverterClient(baseUrl: String) {
 
             val authFinal = resultFinish.body()
 
-            if (!CryptoHelperSignum.checkServerSignature(authFinal, saltedPassword, proof.authMessage)) {
+            if (!crypto.checkServerSignature(authFinal, saltedPassword, proof.authMessage)) {
                 throw IOException("Server signature verification failed.")
             }
 
@@ -95,7 +95,7 @@ class KostalInverterClient(baseUrl: String) {
                 User.master -> "${authFinal.token}:$serviceCode"
             }
 
-            val box = CryptoHelperSignum.encryptSessionToken(token, proof)
+            val box = crypto.encryptSessionToken(token, proof)
 
             val request = AuthCreateSessionRequest(
                 authStart.transactionId,
