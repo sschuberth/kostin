@@ -3,7 +3,11 @@ package dev.schuberth.kostin.client
 import dev.schuberth.kostin.client.models.AuthServerFinal
 import dev.schuberth.kostin.client.models.AuthServerFirst
 
+expect fun CryptoHelper.Companion.get(): CryptoHelper
+
 interface CryptoHelper {
+    companion object
+
     fun getAuthMessage(user: User, nonce: String, auth: AuthServerFirst): ByteArray = listOf(
         "n=${user.name}",
         "r=$nonce",

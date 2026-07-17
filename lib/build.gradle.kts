@@ -29,6 +29,11 @@ kotlin {
                 implementation(ktorLibs.client.cio)
                 implementation(ktorLibs.client.contentNegotiation)
                 implementation(ktorLibs.serialization.kotlinx.json)
+            }
+        }
+
+        jvmMain {
+            dependencies {
                 implementation(libs.signum.indispensable)
                 implementation(libs.signum.supreme)
             }
