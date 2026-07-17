@@ -132,7 +132,6 @@ class KostalInverterClient(baseUrl: String) {
         return key.encrypt(token.encodeToByteArray()).getOrThrow()
     }
 
-    @Suppress("LongMethod", "ThrowsCount")
     private fun login(password: String, serviceCode: String?): TokenResponse {
         val api = AuthApi(baseUrl = apiUrl, httpClientEngine = engine)
 
