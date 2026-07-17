@@ -38,6 +38,13 @@ kotlin {
                 implementation(libs.signum.supreme)
             }
         }
+
+        jvmTest {
+            dependencies {
+                implementation(libs.kotest.assertions.core)
+                implementation(libs.kotest.runner.junit5)
+            }
+        }
     }
 }
 
@@ -69,4 +76,8 @@ openApiGenerate {
             "supportingFiles" to ""
         )
     )
+}
+
+tasks.named<Test>("jvmTest") {
+    useJUnitPlatform()
 }
