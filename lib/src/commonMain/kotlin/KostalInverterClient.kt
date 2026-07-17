@@ -3,6 +3,10 @@ package dev.schuberth.kostin.client
 import at.asitplus.signum.indispensable.Digest as SignumDigest
 import at.asitplus.signum.indispensable.HMAC
 import at.asitplus.signum.indispensable.kdf.PBKDF2
+import at.asitplus.signum.indispensable.symmetric.AuthCapability
+import at.asitplus.signum.indispensable.symmetric.KeyType
+import at.asitplus.signum.indispensable.symmetric.NonceTrait
+import at.asitplus.signum.indispensable.symmetric.SealedBox
 import at.asitplus.signum.indispensable.symmetric.SymmetricEncryptionAlgorithm
 import at.asitplus.signum.indispensable.symmetric.authTag
 import at.asitplus.signum.indispensable.symmetric.keyFrom
@@ -20,6 +24,8 @@ import dev.schuberth.kostin.client.infrastructure.ApiClient
 import dev.schuberth.kostin.client.models.AuthClientFinal
 import dev.schuberth.kostin.client.models.AuthClientFirst
 import dev.schuberth.kostin.client.models.AuthCreateSessionRequest
+import dev.schuberth.kostin.client.models.AuthServerFinal
+import dev.schuberth.kostin.client.models.AuthServerFirst
 import dev.schuberth.kostin.client.models.DownloadRequest
 import dev.schuberth.kostin.client.models.TokenResponse
 import dev.schuberth.kostin.client.models.Version
@@ -71,6 +77,61 @@ class KostalInverterClient(baseUrl: String) {
         block().also { logout() }
     }
 
+    private suspend fun getSaltedPassword(auth: AuthServerFirst, password: String): ByteArray {
+        val kdf = PBKDF2.HMAC_SHA256(auth.rounds)
+        return kdf.deriveKey(
+            Base64.decode(auth.salt),
+            password.encodeToByteArray(),
+            kdf.pbkdf2.prf.digest.outputLength
+        ).getOrThrow()
+    }
+
+    private class Proof(
+        val authMessage: ByteArray,
+        val clientKey: ByteArray,
+        val storedKey: ByteArray,
+        val proof: ByteArray
+    )
+
+    private fun getProof(user: User, nonce: String, auth: AuthServerFirst, saltedPassword: ByteArray): Proof {
+        val authMessage = listOf(
+            "n=${user.name}",
+            "r=$nonce",
+            "r=${auth.nonce}",
+            "s=${auth.salt}",
+            "i=${auth.rounds}",
+            "c=biws",
+            "r=${auth.nonce}"
+        ).joinToString(",").encodeToByteArray()
+
+        val clientKey = HMAC.SHA256.mac(saltedPassword, "Client Key".encodeToByteArray()).getOrThrow()
+        val storedKey = SignumDigest.SHA256.digest(clientKey)
+        val clientSignature = HMAC.SHA256.mac(storedKey, authMessage).getOrThrow()
+
+        val proof = clientKey.zip(clientSignature) { a, b -> a xor b }.toByteArray()
+
+        return Proof(authMessage, clientKey, storedKey, proof)
+    }
+
+    private fun checkServerSignature(auth: AuthServerFinal, saltedPassword: ByteArray, authMessage: ByteArray) {
+        val serverKey = HMAC.SHA256.mac(saltedPassword, "Server Key".encodeToByteArray()).getOrThrow()
+        val serverSignature = HMAC.SHA256.mac(serverKey, authMessage).getOrThrow()
+
+        check(serverSignature.contentEquals(Base64.decode(auth.signature))) {
+            "Server signature verification failed."
+        }
+    }
+
+    private suspend fun encryptSessionToken(
+        token: String,
+        proof: Proof
+    ): SealedBox<AuthCapability.Authenticated.Integrated, NonceTrait.Required, out KeyType.Integrated> {
+        val msg = "Session Key".encodeToByteArray() + proof.authMessage + proof.clientKey
+        val protocolKey = HMAC.SHA256.mac(proof.storedKey, msg).getOrThrow()
+        val key = SymmetricEncryptionAlgorithm.AES_256.GCM.keyFrom(protocolKey).getOrThrow()
+        return key.encrypt(token.encodeToByteArray()).getOrThrow()
+    }
+
     @Suppress("LongMethod", "ThrowsCount")
     private fun login(password: String, serviceCode: String?): TokenResponse {
         val api = AuthApi(baseUrl = apiUrl, httpClientEngine = engine)
@@ -89,31 +150,9 @@ class KostalInverterClient(baseUrl: String) {
             }
 
             val authStart = resultStart.body()
-
-            val kdf = PBKDF2.HMAC_SHA256(authStart.rounds)
-            val saltedPassword = kdf.deriveKey(
-                Base64.decode(authStart.salt),
-                password.encodeToByteArray(),
-                kdf.pbkdf2.prf.digest.outputLength
-            ).getOrThrow()
-
-            val clientKey = HMAC.SHA256.mac(saltedPassword, "Client Key".encodeToByteArray()).getOrThrow()
-
-            val storedKey = SignumDigest.SHA256.digest(clientKey)
-            val authMessage = listOf(
-                "n=${user.name}",
-                "r=$nonce",
-                "r=${authStart.nonce}",
-                "s=${authStart.salt}",
-                "i=${authStart.rounds}",
-                "c=biws",
-                "r=${authStart.nonce}"
-            ).joinToString(",").encodeToByteArray()
-
-            val clientSignature = HMAC.SHA256.mac(storedKey, authMessage).getOrThrow()
-            val proof = clientKey.zip(clientSignature) { a, b -> a xor b }.toByteArray()
-
-            val resultFinish = api.postAuthFinish(AuthClientFinal(authStart.transactionId, Base64.encode(proof)))
+            val saltedPassword = getSaltedPassword(authStart, password)
+            val proof = getProof(user, nonce, authStart, saltedPassword)
+            val resultFinish = api.postAuthFinish(AuthClientFinal(authStart.transactionId, Base64.encode(proof.proof)))
 
             if (!resultFinish.success) {
                 throw IOException("Failed to finish authentication: ${resultFinish.response.status}")
@@ -121,23 +160,14 @@ class KostalInverterClient(baseUrl: String) {
 
             val authFinal = resultFinish.body()
 
-            val serverKey = HMAC.SHA256.mac(saltedPassword, "Server Key".encodeToByteArray()).getOrThrow()
-            val serverSignature = HMAC.SHA256.mac(serverKey, authMessage).getOrThrow()
-
-            check(serverSignature.contentEquals(Base64.decode(authFinal.signature))) {
-                "Server signature verification failed."
-            }
-
-            val msg = "Session Key".encodeToByteArray() + authMessage + clientKey
-            val protocolKey = HMAC.SHA256.mac(storedKey, msg).getOrThrow()
+            checkServerSignature(authFinal, saltedPassword, proof.authMessage)
 
             val token = when (user) {
                 User.user -> authFinal.token
                 User.master -> "${authFinal.token}:$serviceCode"
             }
 
-            val key = SymmetricEncryptionAlgorithm.AES_256.GCM.keyFrom(protocolKey).getOrThrow()
-            val box = key.encrypt(token.encodeToByteArray()).getOrThrow()
+            val box = encryptSessionToken(token, proof)
 
             val request = AuthCreateSessionRequest(
                 authStart.transactionId,
