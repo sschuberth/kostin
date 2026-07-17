@@ -14,8 +14,6 @@ import dev.schuberth.kostin.client.models.Version
 
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.call.body
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.engine.cio.CIOEngineConfig
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.header
@@ -36,7 +34,7 @@ import kotlinx.io.IOException
  */
 class KostalInverterClient(baseUrl: String) {
     private val apiUrl = "${baseUrl.removeSuffix("/")}${ApiClient.BASE_URL}"
-    private val engine by lazy { CIO.create { trustUnknownCertificates() } }
+    private val engine by lazy { getHttpClientEngine() }
 
     fun getVersion(): Version {
         val api = InfoApi(baseUrl = apiUrl, httpClientEngine = engine)
@@ -172,5 +170,3 @@ class KostalInverterClient(baseUrl: String) {
         }
     }
 }
-
-internal expect fun CIOEngineConfig.trustUnknownCertificates()

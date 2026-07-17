@@ -29,7 +29,6 @@ kotlin {
                 api(libs.kotlinx.serialization.core)
                 api(libs.kotlinx.serialization.json)
 
-                implementation(ktorLibs.client.cio)
                 implementation(ktorLibs.client.contentNegotiation)
                 implementation(ktorLibs.serialization.kotlinx.json)
                 implementation(libs.cryptoKotlin.core)
@@ -39,6 +38,7 @@ kotlin {
 
         jvmMain {
             dependencies {
+                implementation(ktorLibs.client.okhttp)
                 implementation(libs.signum.indispensable)
                 implementation(libs.signum.supreme)
             }
@@ -48,6 +48,18 @@ kotlin {
             dependencies {
                 implementation(libs.kotest.assertions.core)
                 implementation(libs.kotest.runner.junit5)
+            }
+        }
+
+        linuxMain {
+            dependencies {
+                implementation(ktorLibs.client.curl)
+            }
+        }
+
+        mingwMain {
+            dependencies {
+                implementation(ktorLibs.client.curl)
             }
         }
     }
