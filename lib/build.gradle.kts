@@ -8,6 +8,9 @@ plugins {
 }
 
 kotlin {
+    linuxX64()
+    mingwX64()
+
     compilerOptions {
         freeCompilerArgs.add("-Xcontext-parameters")
     }
@@ -29,6 +32,8 @@ kotlin {
                 implementation(ktorLibs.client.cio)
                 implementation(ktorLibs.client.contentNegotiation)
                 implementation(ktorLibs.serialization.kotlinx.json)
+                implementation(libs.cryptoKotlin.core)
+                runtimeOnly(libs.cryptoKotlin.provider.optimal)
             }
         }
 
