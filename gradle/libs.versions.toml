@@ -3,7 +3,6 @@ detektPlugin = "2.0.0-alpha.5"
 kotlinPlugin = "2.3.21"
 openApiGeneratorPlugin = "7.23.0"
 sortDependenciesPlugin = "0.19.0"
-tapmocPlugin = "0.4.2"
 
 clikt = "5.1.0"
 cryptoKotlin = "0.6.0"
@@ -24,7 +23,6 @@ plugin-detekt = { module = "dev.detekt:detekt-gradle-plugin", version.ref = "det
 plugin-detekt-formatting = { module = "dev.detekt:detekt-rules-ktlint-wrapper", version.ref = "detektPlugin" }
 plugin-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlinPlugin" }
 plugin-sortDependencies = { module = "com.squareup:sort-dependencies-gradle-plugin", version.ref = "sortDependenciesPlugin" }
-plugin-tapmoc = { module = "com.gradleup.tapmoc:tapmoc-gradle-plugin", version.ref = "tapmocPlugin" }
 
 clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
 cryptoKotlin-core = { module = "dev.whyoleg.cryptography:cryptography-core", version.ref = "cryptoKotlin" }
