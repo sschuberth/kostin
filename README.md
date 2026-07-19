@@ -30,4 +30,4 @@ Commands:
 
 # Disclaimer
 
-This project is not affiliated with, sponsored by, or endorsed by https://www.kostal-solar-electric.com/ and / or any mentioned company or trademark owner.
+This project is not affiliated with, sponsored by, or endorsed by [Kostal](https://www.kostal-solar-electric.com/) and / or any mentioned company or trademark owner.
