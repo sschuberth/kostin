@@ -8,7 +8,20 @@ Currently, only the PLENTICORE G3 inverter is tested.
 To get started with Kostin, follow these steps:
 
 1. Checkout the source code.
-2. Run `./gradlew -q :cli:runJvm --args="--help"`.
+2. Run `./gradlew -q :cli:runJvm --args="--help"`:
+
+```
+Usage: main [<options>] <command> [<args>]...
+
+Options:
+* --url=<text>
+  -h, --help    Show this message and exit
+
+Commands:
+  version
+  log
+  reboot
+```
 
 # Acknowledgments
 
