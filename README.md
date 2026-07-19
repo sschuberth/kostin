@@ -3,6 +3,13 @@
 Kostin is a simple command line tool to communicate with the REST-based API V2 for PIKO IQ and PLENTICORE plus inverters.
 Currently, only the PLENTICORE G3 inverter is tested.
 
+# Quickstart
+
+To get started with Kostin, follow these steps:
+
+1. Checkout the source code.
+2. Run `./gradlew -q :cli:runJvm --args="--help"`.
+
 # Acknowledgments
 
 * https://github.com/stegm/pykoplenti (Python, `Apache-2.0`)
