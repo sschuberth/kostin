@@ -8,6 +8,8 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 plugins {
     // Apply precompiled script plugins.
     id("kotlin-multiplatform-conventions")
+
+    alias(libs.plugins.upx)
 }
 
 kotlin {
@@ -55,6 +57,10 @@ kotlin {
             }
         }
     }
+}
+
+upx {
+    version = "5.2.0"
 }
 
 tasks.named<JavaExec>("runJvm") {

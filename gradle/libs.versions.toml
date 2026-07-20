@@ -3,6 +3,7 @@ detektPlugin = "2.0.0-alpha.5"
 kotlinPlugin = "2.3.21"
 openApiGeneratorPlugin = "7.23.0"
 sortDependenciesPlugin = "0.19.0"
+upxPlugin = "1.6.0-RC.5"
 
 clikt = "5.1.0"
 cryptoKotlin = "0.6.0"
@@ -16,6 +17,7 @@ signumSupreme = "0.15.0"
 [plugins]
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinPlugin" }
 openApiGenerator = { id = "org.openapi.generator", version.ref = "openApiGeneratorPlugin" }
+upx = { id = "org.jetbrains.gradle.upx", version.ref = "upxPlugin" }
 
 [libraries]
 # These are Maven coordinates for Gradle plugins, which are required for use in precompiled plugin scripts.
