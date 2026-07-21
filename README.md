@@ -25,6 +25,7 @@ Commands:
 
 # Acknowledgments
 
+* https://github.com/marquisolivier/KostalApiClient (C#, `CC0-1.0`)
 * https://github.com/stegm/pykoplenti (Python, `Apache-2.0`)
 * https://github.com/kilianknoll/kostal-RESTAPI (Python, `GPL-3.0-or-later`)
 
