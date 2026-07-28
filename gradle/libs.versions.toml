@@ -9,7 +9,7 @@ cryptoKotlin = "0.6.0"
 kotest = "6.2.3"
 kotlinxDatetime = "0.8.0"
 kotlinxSerialization = "1.11.0"
-logback = "1.6.0"
+logback = "1.6.1"
 signumIndispensable = "3.24.0"
 signumSupreme = "0.15.0"
 
