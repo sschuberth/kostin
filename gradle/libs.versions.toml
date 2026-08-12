@@ -6,7 +6,7 @@ sortDependenciesPlugin = "0.20.0"
 
 clikt = "5.1.0"
 cryptoKotlin = "0.6.0"
-kotest = "6.2.3"
+kotest = "6.2.4"
 kotlinxDatetime = "0.8.0"
 kotlinxSerialization = "1.11.0"
 logback = "1.6.1"
