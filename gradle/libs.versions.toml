@@ -1,7 +1,7 @@
 [versions]
 detektPlugin = "2.0.0-alpha.6"
 kotlinPlugin = "2.4.10"
-openApiGeneratorPlugin = "7.24.0"
+openApiGeneratorPlugin = "7.25.0"
 sortDependenciesPlugin = "0.21.0"
 
 clikt = "5.1.0"
