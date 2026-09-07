@@ -1,6 +1,6 @@
 [versions]
 detektPlugin = "2.0.0-alpha.6"
-kotlinPlugin = "2.4.10"
+kotlinPlugin = "2.4.20"
 openApiGeneratorPlugin = "7.25.0"
 sortDependenciesPlugin = "0.21.0"
 
