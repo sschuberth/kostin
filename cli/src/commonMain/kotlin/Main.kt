@@ -16,6 +16,7 @@ internal object Main : CliktCommand() {
 
     init {
         context {
+            autoEnvvarPrefix = "KOSTIN"
             helpFormatter = { MordantHelpFormatter(context = it, requiredOptionMarker = "*", showDefaultValues = true) }
         }
 
