@@ -40,8 +40,8 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api(libs.clikt)
                 implementation(projects.lib)
+                implementation(libs.clikt)
             }
         }
 
