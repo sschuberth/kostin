@@ -11,10 +11,6 @@ kotlin {
     linuxX64()
     mingwX64()
 
-    compilerOptions {
-        freeCompilerArgs.add("-Xcontext-parameters")
-    }
-
     sourceSets {
         commonMain {
             kotlin.srcDir(

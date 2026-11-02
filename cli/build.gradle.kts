@@ -28,10 +28,6 @@ kotlin {
 
     mingwX64()
 
-    compilerOptions {
-        freeCompilerArgs.add("-Xcontext-parameters")
-    }
-
     targets.withType<KotlinNativeTarget> {
         binaries {
             executable(setOf(NativeBuildType.RELEASE)) {
