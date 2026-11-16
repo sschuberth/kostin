@@ -4,7 +4,7 @@ kotlinPlugin = "2.4.21"
 openApiGeneratorPlugin = "7.27.0"
 sortDependenciesPlugin = "0.21.0"
 
-clikt = "5.1.0"
+clikt = "5.2.0"
 cryptoKotlin = "0.6.0"
 kotest = "6.2.7"
 kotlinxDatetime = "0.8.0"
